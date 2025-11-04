@@ -1,0 +1,9 @@
+﻿  LaboratoryWork2.cpp
+G:\LaboratoryWork2\LaboratoryWork2\LaboratoryWork2.cpp(169,13): warning C4984: 'if constexpr' is a C++17 language extension
+      G:\LaboratoryWork2\LaboratoryWork2\LaboratoryWork2.cpp(169,13):
+      the template instantiation context (the oldest one first) is
+          G:\LaboratoryWork2\LaboratoryWork2\LaboratoryWork2.cpp(274,2):
+          see reference to class template instantiation 'Array<T>' being compiled
+  
+G:\LaboratoryWork2\LaboratoryWork2\LaboratoryWork2.cpp(232,13): warning C4984: 'if constexpr' is a C++17 language extension
+  LaboratoryWork2.vcxproj -> G:\LaboratoryWork2\x64\Debug\LaboratoryWork2.exe
