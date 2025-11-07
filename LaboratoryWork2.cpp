@@ -78,7 +78,6 @@ public:
         reserve(default_initial_capacity);
     }
 
-    //�� ����� ��������. ��������� �����, ��� �������� ������� ��������������.
     explicit Array(int capacity)
         : data_(nullptr), size_(0), capacity_(0)
     {
@@ -89,7 +88,6 @@ public:
         clear_and_free();
     }
 
-    //�����������
     Array(const Array& other)
         : data_(nullptr), size_(0), capacity_(0)
     {
@@ -105,7 +103,6 @@ public:
         }
     }
 
-    //Move �����������
     Array(Array&& other) noexcept
         : data_(other.data_), size_(other.size_), capacity_(other.capacity_)
     {
@@ -114,7 +111,6 @@ public:
         other.capacity_ = 0;
     }
 
-    // ������������.
     Array& operator=(const Array& other) {
         if (this == &other) return *this;
         clear_and_free();
@@ -131,7 +127,6 @@ public:
         return *this;
     }
 
-    //�������.
     int insert(const T& value) {
         ensure_capacity_for_one_more();
         construct_at(size_, value);
