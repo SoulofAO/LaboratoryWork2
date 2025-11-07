@@ -5,6 +5,8 @@
 #include <utility>
 #include <cmath>
 #include <iostream>
+#include <gtest/gtest.h>
+
 
 template<typename T>
 class Array final {
@@ -278,56 +280,113 @@ struct TestStruct {
     TestStruct& operator=(TestStruct&& o) noexcept { x = o.x; o.x = 0; return *this; }
 };
 
-int main() {
-    Array<int> a;
-    for (int i = 0; i < 10; ++i) a.insert(i + 1);
 
-    for (int i = 0; i < a.size(); ++i) a[i] *= 2;
-
-    std::cout << "Forward iteration:\n";
-    for (auto it = a.iterator(); it.hasNext(); it.next()) {
-        std::cout << it.get() << ' ';
+TEST(ArrayTest, InsertAndModifyInts) {
+    Array<int> A;
+    for (int i = 0; i < 10; ++i) {
+        A.insert(i + 1);
     }
-    std::cout << "\n";
-
-    std::cout << "Reverse iteration:\n";
-    for (auto it = a.reverseIterator(); it.hasNext(); it.next()) {
-        std::cout << it.get() << ' ';
+    ASSERT_EQ(A.size(), 10);
+    for (int i = 0; i < A.size(); ++i) {
+        A[i] *= 2;
     }
-    std::cout << "\n";
-
-    a.insert(3, 999);
-    std::cout << "After inserting 999 at index 3:\n";
-    for (int i = 0; i < a.size(); ++i) std::cout << a[i] << ' ';
-    std::cout << "\n";
-
-    a.remove(3);
-    std::cout << "After removing index 3:\n";
-    for (int i = 0; i < a.size(); ++i) std::cout << a[i] << ' ';
-    std::cout << "\n";
-
-    Array<TestStruct> arr;
-    for (int i = 0; i < 5; ++i) arr.insert(TestStruct(i + 10));
-    std::cout << "TestStruct values:\n";
-    for (auto it = arr.iterator(); it.hasNext(); it.next()) {
-        std::cout << it.get().x << ' ';
+    ASSERT_EQ(A.size(), 10);
+    for (int i = 0; i < 10; ++i) {
+        EXPECT_EQ(A[i], (i + 1) * 2);
     }
-    std::cout << "\n";
+}
 
-    Array<int> copied = a;
-    std::cout << "Copied array:\n";
-    for (int i = 0; i < copied.size(); ++i) std::cout << copied[i] << ' ';
-    std::cout << "\n";
+static std::vector<int> CollectForward(Array<int>& A) {
+    std::vector<int> Out;
+    for (auto It = A.iterator(); It.hasNext(); It.next()) {
+        Out.push_back(It.get());
+    }
+    return Out;
+}
 
-    Array<int> moved = std::move(copied);
-    std::cout << "Moved array (from copied):\n";
-    for (int i = 0; i < moved.size(); ++i) std::cout << moved[i] << ' ';
-    std::cout << "\n";
+static std::vector<int> CollectReverse(Array<int>& A) {
+    std::vector<int> Out;
+    for (auto It = A.reverseIterator(); It.hasNext(); It.next()) {
+        Out.push_back(It.get());
+    }
+    return Out;
+}
 
-    std::cout << "Range-for support:\n";
-    for (int v : moved) std::cout << v << ' ';
-    std::cout << "\n";
+TEST(ArrayTest, ForwardAndReverseIteration) {
+    Array<int> A;
+    for (int i = 0; i < 10; ++i) {
+        A.insert(i + 1);
+    }
+    for (int i = 0; i < A.size(); ++i) {
+        A[i] *= 2;
+    }
+    std::vector<int> Forward = CollectForward(A);
+    std::vector<int> ExpectedForward;
+    for (int i = 0; i < 10; ++i) ExpectedForward.push_back((i + 1) * 2);
+    EXPECT_EQ(Forward, ExpectedForward);
+    std::vector<int> Reverse = CollectReverse(A);
+    std::reverse(ExpectedForward.begin(), ExpectedForward.end());
+    EXPECT_EQ(Reverse, ExpectedForward);
+}
 
-    std::cout << "All demo operations completed successfully.\n";
-    return 0;
+TEST(ArrayTest, InsertAtIndexAndRemove) {
+    Array<int> A;
+    for (int i = 0; i < 10; ++i) {
+        A.insert(i + 1);
+    }
+    int InsertedIndex = A.insert(3, 999);
+    EXPECT_EQ(InsertedIndex, 3);
+    ASSERT_EQ(A.size(), 11);
+    EXPECT_EQ(A[3], 999);
+    Array<int> Snapshot = A;
+    A.remove(3);
+    ASSERT_EQ(A.size(), 10);
+    for (int i = 0; i < A.size(); ++i) {
+        EXPECT_EQ(A[i], Snapshot[i < 3 ? i : i + 1]);
+    }
+}
+
+TEST(ArrayTest, TestStructValues) {
+    Array<TestStruct> Arr;
+    for (int i = 0; i < 5; ++i) {
+        Arr.insert(TestStruct(i + 10));
+    }
+    ASSERT_EQ(Arr.size(), 5);
+    std::vector<int> Collected;
+    for (auto It = Arr.iterator(); It.hasNext(); It.next()) {
+        Collected.push_back(It.get().x);
+    }
+    for (int i = 0; i < 5; ++i) {
+        EXPECT_EQ(Collected[i], i + 10);
+    }
+}
+
+TEST(ArrayTest, CopyAndMoveSemanticsAndRangeFor) {
+    Array<int> A;
+    for (int i = 0; i < 10; ++i) {
+        A.insert(i + 1);
+    }
+    for (int i = 0; i < A.size(); ++i) {
+        A[i] *= 2;
+    }
+    Array<int> Copied = A;
+    ASSERT_EQ(Copied.size(), A.size());
+    for (int i = 0; i < A.size(); ++i) {
+        EXPECT_EQ(Copied[i], A[i]);
+    }
+    Array<int> Moved = std::move(Copied);
+    EXPECT_EQ(Moved.size(), A.size());
+    EXPECT_EQ(Copied.size(), 0);
+    std::vector<int> RangeForCollected;
+    for (int V : Moved) {
+        RangeForCollected.push_back(V);
+    }
+    std::vector<int> Expected;
+    for (int i = 0; i < 10; ++i) Expected.push_back((i + 1) * 2);
+    EXPECT_EQ(RangeForCollected, Expected);
+}
+
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
