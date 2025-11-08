@@ -90,6 +90,7 @@ public:
         clear_and_free();
     }
 
+    //Copyswap
     Array(const Array& other)
         : data_(nullptr), size_(0), capacity_(0)
     {
@@ -140,11 +141,6 @@ public:
     int insert(int index, const T& value) {
         assert(index >= 0 && index <= size_);
         ensure_capacity_for_one_more();
-        if (size_ == 0 || index == size_) {
-            construct_at(size_, value);
-            ++size_;
-            return size_ - 1;
-        }
 
         construct_at(size_, data_[size_ - 1]);
         for (int i = size_ - 2; i >= index; --i) {
@@ -223,19 +219,20 @@ private:
     void reallocate(int newCapacity) {
         assert(newCapacity >= size_);
         void* raw = std::malloc(static_cast<size_t>(newCapacity) * sizeof(T));
+        //!
         if (!raw) throw std::bad_alloc();
         T* newData = static_cast<T*>(raw);
 
         if (data_) {
             if constexpr (std::is_move_constructible<T>::value) {
                 for (int i = 0; i < size_; ++i) {
-                    ::new (static_cast<void*>(newData + i)) T(std::move(data_[i]));
+                    ::new (newData + i) T(std::move(data_[i]));
                     data_[i].~T();
                 }
             }
             else {
                 for (int i = 0; i < size_; ++i) {
-                    ::new (static_cast<void*>(newData + i)) T(data_[i]);
+                    ::new (newData + i) T(data_[i]);
                     data_[i].~T();
                 }
             }
@@ -312,6 +309,8 @@ static std::vector<int> CollectReverse(Array<int>& A) {
     }
     return Out;
 }
+
+//Добавить =
 
 TEST(ArrayTest, ForwardAndReverseIteration) {
     Array<int> A;
