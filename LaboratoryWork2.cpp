@@ -136,6 +136,7 @@ public:
         return size_ - 1;
     }
 
+	//WHY WE SHOULD RETURN INDEX? OLEG FROM FUTURE, ASK THE TEACHER ABOUT IT.
     int insert(int index, const T& value) {
         assert(index >= 0 && index <= size_);
         ensure_capacity_for_one_more();
