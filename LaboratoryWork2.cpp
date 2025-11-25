@@ -130,6 +130,21 @@ public:
         return *this;
     }
 
+    Array& operator=(Array&& other) noexcept
+    {
+        if (this != &other) {
+            clear_and_free();               
+            data_ = other.data_;
+            size_ = other.size_;
+            capacity_ = other.capacity_;
+            other.data_ = nullptr;
+            other.size_ = 0;
+            other.capacity_ = 0;
+        }
+        return *this;
+    }
+
+
     int insert(const T& value) {
         ensure_capacity_for_one_more();
         construct_at(size_, value);
@@ -137,23 +152,28 @@ public:
         return size_ - 1;
     }
 
-	//WHY WE SHOULD RETURN INDEX? OLEG FROM FUTURE, ASK THE TEACHER ABOUT IT.
     int insert(int index, const T& value) {
         assert(index >= 0 && index <= size_);
         ensure_capacity_for_one_more();
 
-        construct_at(size_, data_[size_ - 1]);
-        for (int i = size_ - 2; i >= index; --i) {
-            destroy_at(i + 1);
-            construct_at(i + 1, data_[i]);
-            destroy_at(i);
+        if constexpr (std::is_move_constructible_v<T>) {
+            for (int i = size_; i > index; --i) {
+                construct_at(i, std::move(data_[i - 1]));
+                destroy_at(i - 1);
+            }
         }
-        destroy_at(index);
-        construct_at(index, value);
+        else {
+            for (int i = size_; i > index; --i) {
+                construct_at(i, data_[i - 1]);
+                destroy_at(i - 1);
+            }
+        }
 
+        construct_at(index, value);
         ++size_;
         return index;
     }
+
 
     void remove(int index) {
         assert(index >= 0 && index < size_);
