@@ -130,6 +130,7 @@ public:
         return *this;
     }
 
+	//ƒобавил копирование через перемещение
     Array& operator=(Array&& other) noexcept
     {
         if (this != &other) {
@@ -145,7 +146,8 @@ public:
     }
 
 
-    int insert(const T& value) {
+    int insert(const T& value) 
+    {
         ensure_capacity_for_one_more();
         construct_at(size_, value);
         ++size_;
@@ -156,14 +158,18 @@ public:
         assert(index >= 0 && index <= size_);
         ensure_capacity_for_one_more();
 
-        if constexpr (std::is_move_constructible_v<T>) {
-            for (int i = size_; i > index; --i) {
+        if constexpr (std::is_move_constructible_v<T>) 
+        {
+            for (int i = size_; i > index; --i) 
+            {
                 construct_at(i, std::move(data_[i - 1]));
+                //!
                 destroy_at(i - 1);
             }
         }
         else {
-            for (int i = size_; i > index; --i) {
+            for (int i = size_; i > index; --i) 
+            {
                 construct_at(i, data_[i - 1]);
                 destroy_at(i - 1);
             }
