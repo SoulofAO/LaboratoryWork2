@@ -115,6 +115,7 @@ public:
     }
 
     Array& operator=(const Array& other) {
+        //!
         if (this == &other) return *this;
         clear_and_free();
         if (other.size_ > 0) {
